@@ -7,18 +7,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.mongodb.*;
 import twitter4j.GeoLocation;
 import twitter4j.Status;
 import twitter4j.json.DataObjectFactory;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -68,9 +61,13 @@ public class MovieService extends MovieServiceBase {
 			createMovieData();
 		}
 
-		// TODO: Index Movie attributes "title", "rating", "votes", "tweets.coordinates"
+		// DONE: Index Movie attributes "title", "rating", "votes", "tweets.coordinates"
 
 		tweets.ensureIndex(new BasicDBObject("coordinates", "2dsphere"));
+		movies.createIndex(new BasicDBObject("title", 1));
+		movies.createIndex(new BasicDBObject("rating", 1));
+		movies.createIndex(new BasicDBObject("votes", 1));
+		movies.createIndex(new BasicDBObject("tweets.coordinates", 1));
 	}
 
 	/**
@@ -92,8 +89,9 @@ public class MovieService extends MovieServiceBase {
 	 * @return the matching DBObject
 	 */
 	public DBObject findMovieByTitle(String title) {
-		// TODO: implement
-		DBObject result = null;
+		// DONE: implement
+		DBObject filter = new BasicDBObject("title", title);
+		DBObject result = movies.findOne(filter);
 		return result;
 	}
 
