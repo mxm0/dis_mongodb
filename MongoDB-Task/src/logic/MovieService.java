@@ -42,13 +42,13 @@ public class MovieService extends MovieServiceBase {
 	public MovieService() {
 		// Connect to local machine
 		try {
-			// TODO: connect to MongoDB
-			mongo = null;
+			// DONE: connect to MongoDB
+			mongo = new MongoClient( "localhost" , 27017 );;
 		} catch (Exception e) {
 			System.out.println("No MongoDB server running on localhost");
 		}
-		// TODO: Select database "imdb"
-		db = null;
+		// DONE: Select database "imdb"
+		db = mongo.getDB("imdb");
 		// Create a GriFS FileSystem Object using the db
 		fs = new GridFS(db);
 		// See this method on how to use GridFS
@@ -58,9 +58,9 @@ public class MovieService extends MovieServiceBase {
 		// Enable Full Text Search
 		enableTextSearch();
 
-		// TODO: Take "movies" and "tweets" collection
-		movies = null;
-		tweets = null;
+		// DONE: Take "movies" and "tweets" collection
+		movies = db.getCollection("movies");
+		tweets = db.getCollection("tweets");
 
 		// If movie database isn't filled (has less than 10000 documents) delete
 		// everything and fill it
