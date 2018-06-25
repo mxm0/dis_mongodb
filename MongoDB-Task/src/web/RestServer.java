@@ -29,6 +29,7 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import twitter.MovieTweetHandler;
 import twitter.TweetStream;
 
@@ -203,7 +204,7 @@ public class RestServer {
 					}
 					//Import from IMDB
 					else {
-						HttpClient client = new HttpClient();
+						HttpClient client = new HttpClient(new SslContextFactory());
 						client.start();
 						ContentResponse r = client.GET(url);
 						byte[] content = r.getContent();

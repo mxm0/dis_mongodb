@@ -170,7 +170,7 @@
 		loadImdbPoster : function(event) {
 			event.preventDefault();
 			var $this = $(this);
-			$.get("http://www.omdbapi.com/?" + $.param({ t : $this.data("title") }), function(data) {
+			$.get("http://www.omdbapi.com/?" + $.param({ t : $this.data("title") }) + "&apikey=7e52eac6", function(data) {
 				var importParams = {
 					name : $this.data("id"),
 					url : data.Poster	
