@@ -210,7 +210,7 @@ public class MovieService extends MovieServiceBase {
 		//TODO: implement
 
 	}
-
+	//////////////////////// DO UNTIL HERE ////////////////////////////
 	/**
 	 * Find all tweets that are geotagged, i.e. have a "coordinates" attribute
 	 * that is neither null nor non-existent.
@@ -220,8 +220,9 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getGeotaggedTweets(int limit) {
-		//TODO : implement
-		DBCursor result = null;
+		//TODO : DONE
+		// Does $exists check for NULL ?
+		DBCursor result = tweets.find(new BasicDBObject("coordinates", new BasicDBObject("$ne", null))).limit(limit);
 		return result;
 	}
 
@@ -231,16 +232,21 @@ public class MovieService extends MovieServiceBase {
 	 * this query is efficient. Furthermore perform a projection to the
 	 * attributes "text", "movie", "user.name", "coordinates". The result is
 	 * used to display markers on the map and the projection ensures, that no
-	 * unnecessary data is transfered. The tweets should be order by the
+	 * unnecessary data is transferred. The tweets should be order by the
 	 * descending (-1) "_id" property so, the newest tweets are returned first.
 	 * 
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getTaggedTweets() {
-		//TODO : implement
-		DBObject projection = null;
-		DBObject query = null;
-		DBObject sort = null;
+		//TODO : DONE
+		tweets.ensureIndex(new BasicDBObject("coordinates", 1));
+		DBObject projection = new BasicDBObject("coordinates", 1);
+		((BasicDBObject) projection).append("text", 1);
+		((BasicDBObject) projection).append("movie", 1);
+		((BasicDBObject) projection).append("user.name", 1);
+		((BasicDBObject) projection).append("coordinates", 1);
+		DBObject query = new BasicDBObject("coordinates", new BasicDBObject("$ne", null));
+		DBObject sort = new BasicDBObject("_id", -1);
 		DBCursor results = tweets.find(query, projection).sort(sort);
 		return results;
 	}
@@ -327,8 +333,9 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getByTweetsKeywordRegex(String keyword, int limit) {
-		//TODO : implement
-		DBCursor result = null;
+		//TODO : DONE
+		Pattern p = Pattern.compile("\\b" + keyword + "\\b", Pattern.CASE_INSENSITIVE);
+		DBCursor result = movies.find(new BasicDBObject("tweets.text", new BasicDBObject("$regex", p))).limit(limit);
 		return result;
 	}
 
@@ -378,8 +385,8 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getNewestTweets(int limit) {
-		//TODO : implement
-		DBCursor result = null;
+		//TODO : DONE
+		DBCursor result = tweets.find().sort(new BasicDBObject("_id", -1)).limit(limit);
 		return result;
 	}
 
@@ -441,8 +448,10 @@ public class MovieService extends MovieServiceBase {
 	 * @return The retrieved GridFS File
 	 */
 	public GridFSDBFile getFile(String name) {
-		//TODO: implement
-		GridFSDBFile file = null;
+		//TODO: DONE
+		GridFSDBFile file = fs.findOne(name);
+		if(file == null)
+			file = fs.findOne("sample.png");
 		return file;
 	}
 
@@ -456,10 +465,12 @@ public class MovieService extends MovieServiceBase {
 	 * @param contentType
 	 */
 	public void saveFile(String name, InputStream inputStream, String contentType) {
-		GridFSInputFile gFile = null;
+		GridFSInputFile gFile = fs.createFile(inputStream, name);
 		//Remove old versions
 		fs.remove(name);
-		//TODO: implement
+		//TODO: DONE
+		gFile.setContentType(contentType);
+		gFile.save();
 	}
 
 	// Given Helper Functions:
