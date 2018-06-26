@@ -89,8 +89,9 @@ public class MovieService extends MovieServiceBase {
 	 * @return the matching DBObject
 	 */
 	public DBObject findMovieByTitle(String title) {
-		// DONE: implement
-		DBObject filter = new BasicDBObject("title", title);
+		String regex = String.format(".*%s.*", title);
+		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+		DBObject filter = new BasicDBObject("title", pattern);
 		DBObject result = movies.findOne(filter);
 		return result;
 	}
@@ -120,9 +121,12 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getBestMovies(int minVotes, double minRating, int limit) {
-		// TODO: implement
-		DBCursor best = null;
-		return best;
+		BasicDBList and = new BasicDBList();
+		and.add(new BasicDBObject("votes", new BasicDBObject("$gt", minVotes)));
+		and.add(new BasicDBObject("rating", new BasicDBObject("$gt", minRating)));
+
+		return movies.find(new BasicDBObject("$and", and)).limit(limit);
+
 	}
 
 	/**
@@ -137,9 +141,17 @@ public class MovieService extends MovieServiceBase {
 	 */
 	public DBCursor getByGenre(String genreList, int limit) {
 		String[] genres = genreList.split(",");
-		//TODO: implement
-		DBCursor result = null;
-		return result;
+
+		BasicDBList and = new BasicDBList();
+		for (String genre : genres) {
+			genre = genre.replaceAll("\\s+","");
+			Pattern pattern = Pattern.compile(genre, Pattern.CASE_INSENSITIVE);
+			DBObject clause = new BasicDBObject("genre", pattern);
+			and.add(clause);
+		}
+
+		DBObject query = new BasicDBObject("$and", and);
+		return movies.find(query).limit(limit);
 	}
 
 	/**
@@ -155,9 +167,12 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor searchByPrefix(String titlePrefix, int limit) {
-		//TODO: implement
-		DBObject prefixQuery = null;
+		System.out.println(titlePrefix);
+		String regex = String.format("^%s.*", titlePrefix);
+		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+		DBObject prefixQuery = new BasicDBObject("title", pattern);
 		return movies.find(prefixQuery).limit(limit);
+
 	}
 
 	/**
@@ -179,10 +194,12 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor suggest(String prefix, int limit) {
-		DBObject query = new BasicDBObject("title", Pattern.compile("^" + prefix + ".*"));
+		String regex = String.format("^%s.*", prefix);
+		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+
+		DBObject query = new BasicDBObject("title", pattern);
 		DBObject projection = new BasicDBObject("title", true);
-		DBCursor suggestions = movies.find(query, projection).limit(limit);
-		return suggestions;
+		return movies.find(query, projection).limit(limit);
 	}
 
 	/**
@@ -191,10 +208,11 @@ public class MovieService extends MovieServiceBase {
 	 * 
 	 * @return the DBCursor for the query
 	 */
+
+	// db.movies.find( {title : { $in : db.tweets.distinct("movie") }})
 	public DBCursor getTweetedMovies() {
-		//TODO: implement
-		DBCursor results = null;
-		return results;
+		DBObject query = new BasicDBObject("tweets", new BasicDBObject("$exists", true));
+		return movies.find(query);
 	}
 
 	/**
@@ -208,7 +226,9 @@ public class MovieService extends MovieServiceBase {
 	 */
 	public void saveMovieComment(String id, String comment) {
 		//TODO: implement
-
+		DBObject findQuery = new BasicDBObject("_id", id);
+		DBObject updateQuery = new BasicDBObject("$set", new BasicDBObject("comment", comment));
+		movies.update(findQuery, updateQuery);
 	}
 	//////////////////////// DO UNTIL HERE ////////////////////////////
 	/**
@@ -385,7 +405,6 @@ public class MovieService extends MovieServiceBase {
 	 * @return the DBCursor for the query
 	 */
 	public DBCursor getNewestTweets(int limit) {
-		//TODO : DONE
 		DBCursor result = tweets.find().sort(new BasicDBObject("_id", -1)).limit(limit);
 		return result;
 	}
@@ -480,12 +499,6 @@ public class MovieService extends MovieServiceBase {
 	 */
 	public void createMovieData() {
 		clearDatabase();
-
-		// Load a CSV file of IMDB titles into the database
-		// List<DBObject> data =
-		// loadMovies_megaNice("/data/imdb_megaNice-full.csv");
-		// Smaller Dataset with less properties:
-		// List<DBObject> data = loadMovies("/data/imdb_nicer-full.csv");
 		loadJSON("/data/movies.json", movies);
 		loadJSON("/data/tweets.json", tweets);
 	}
