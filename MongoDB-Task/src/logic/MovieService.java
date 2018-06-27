@@ -89,9 +89,8 @@ public class MovieService extends MovieServiceBase {
 	 * @return the matching DBObject
 	 */
 	public DBObject findMovieByTitle(String title) {
-		String regex = String.format(".*%s.*", title);
-		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		DBObject filter = new BasicDBObject("title", pattern);
+		String regex = String.format("%s", title);
+		DBObject filter = new BasicDBObject("title", regex);
 		DBObject result = movies.findOne(filter);
 		return result;
 	}
