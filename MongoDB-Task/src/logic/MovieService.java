@@ -383,17 +383,20 @@ public class MovieService extends MovieServiceBase {
 		// Create a text index on the "text" property of tweets
 		tweets.ensureIndex(new BasicDBObject("text", "text").append("user.name", "text"));
 
-		DBObject search = new BasicDBObject();
-		search.put("text", "tweets");
-		search.put("search", query);
-		CommandResult commandResult = db.command(search);
-		BasicDBList results = (BasicDBList) commandResult.get("results");
+		DBObject search = new BasicDBObject("$text", new BasicDBObject("$search", query));
+		//search.put("text", "tweets");
+		//search.put("$search", query);
+		//CommandResult commandResult = db.command(search);
+		//BasicDBList results = (BasicDBList) commandResult.get("results");
+		DBCursor results = tweets.find(search);
+		/*
 		List<DBObject> found = new LinkedList<DBObject>();
 		for (Object o : results) {
 			DBObject dbo = (DBObject) ((DBObject) o).get("obj");
 			found.add(dbo);
 		}
-		return found;
+		*/
+		return results.toArray();
 	}
 
 	/**
